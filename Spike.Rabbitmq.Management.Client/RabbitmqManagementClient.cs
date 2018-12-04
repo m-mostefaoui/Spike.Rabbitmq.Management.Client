@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using EasyNetQ.Management.Client;
-using EasyNetQ.Management.Client.Model;
-
-namespace Spike.RabbitMq.Management.Client
+﻿namespace Spike.RabbitMq.Management.Client
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using EasyNetQ.Management.Client;
+    using EasyNetQ.Management.Client.Model;
+
     public class RabbitMqManagementClient : IRabbitMqManagementClient, IDisposable
     {
         public string HostUrl { get; }
