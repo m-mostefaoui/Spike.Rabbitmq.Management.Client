@@ -9,17 +9,14 @@
     {
         public Task Consume(ConsumeContext<JToken> context)
         {
-            if (context.TryGetMessage(out ConsumeContext<JToken> jsonContext))
-            {
-                var jToken = jsonContext.Message;
-                
-                var fieldsCollector = new JsonFieldsCollector(jToken);
-                var fields = fieldsCollector.GetAllFields();
+            var jToken = context.Message;
 
-                foreach (var field in fields)
-                {
-                    Console.Out.WriteLineAsync($"{field.Key}: '{field.Value}'");
-                }
+            var fieldsCollector = new JsonFieldsCollector(jToken);
+            var fields = fieldsCollector.GetAllFields();
+
+            foreach (var field in fields)
+            {
+                Console.Out.WriteLineAsync($"{field.Key}: '{field.Value}'");
             }
 
             return Task.CompletedTask;
