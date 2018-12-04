@@ -20,8 +20,6 @@
                 {
                     Console.Out.WriteLineAsync($"{field.Key}: '{field.Value}'");
                 }
-
-                Console.Out.WriteLineAsync(new string('-', 200));
             }
 
             return Task.CompletedTask;

@@ -6,14 +6,9 @@ namespace Subscriber
     using MassTransit;
     using MassTransit.RabbitMqTransport;
     using Microsoft.Extensions.Configuration;
-    using RabbitMQ.Client;
 
     class Program
     {
-        //private const string HostUrl = "rabbitmq://localhost/ParcelVision.Retail";
-        //private const string User = "pvRetailDev";
-        //private const string Password = "pvRetailDev";
-
         private static IRabbitMqHost host;
 
         public static void Main()
