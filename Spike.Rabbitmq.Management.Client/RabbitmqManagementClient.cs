@@ -14,7 +14,6 @@
 
         // EasyNetQ
         private readonly ManagementClient managementClient;
-        private Vhost vhost;
 
         public RabbitMqManagementClient(string hostUrl, string username, string password, string virtualHost = "ParcelVision.Retail")
         {
@@ -22,34 +21,35 @@
             if (string.IsNullOrEmpty(username)) throw new ArgumentException("username is null or empty");
             if (string.IsNullOrEmpty(password)) throw new ArgumentException("password is null or empty");
 
-            this.HostUrl = hostUrl;
-            this.Username = username;
-            this.VirtualHost = virtualHost;
+            HostUrl = hostUrl;
+            Username = username;
+            VirtualHost = virtualHost;
 
             managementClient = new ManagementClient(hostUrl, username, password);
         }
 
         public async Task CreateBinding(string queueName, string token)
         {
-            vhost = await managementClient.GetVhostAsync(VirtualHost);
-
-            var createdQueue = await CreateQueue(queueName);
-
+            var vhost = await managementClient.GetVhostAsync(VirtualHost);
+            
             var exchanges = await managementClient.GetExchangesAsync();
-            var filteredExchanges = exchanges.Where(
-                x => x.Name.EndsWith(token, StringComparison.OrdinalIgnoreCase)).ToArray();
+            var filteredExchanges = exchanges.Where(x => x.Name.EndsWith(token, StringComparison.OrdinalIgnoreCase)).ToArray();
 
-            foreach (var exchange in filteredExchanges)
+            if (filteredExchanges.Any())
             {
-                Console.WriteLine($"Exchange {exchange.Name}");
-                var createdExchange = await CreateExchange(exchange.Name);
-                await CreateBinding(createdExchange, createdQueue);
+                var createdQueue = await CreateQueue(queueName, vhost);
+                foreach (var exchange in filteredExchanges)
+                {
+                    Console.WriteLine($"Exchange {exchange.Name}");
+                    var createdExchange = await CreateExchange(exchange.Name, vhost);
+                    await CreateBinding(createdExchange, createdQueue);
+                }
             }
         }
 
-        private async Task<Queue> CreateQueue(string queueName)
+        private async Task<Queue> CreateQueue(string queueName, Vhost vhost)
         {
-            var (found, foundQueue) = await GetQueue(queueName);
+            var (found, foundQueue) = await GetQueue(queueName, vhost);
             if (!found)
             {
                 var createdQueue = await managementClient.CreateQueueAsync(new QueueInfo(queueName), vhost);
@@ -59,7 +59,7 @@
             return foundQueue;
         }
 
-        private async Task<(bool found, Queue queue)> GetQueue(string queueName)
+        private async Task<(bool found, Queue queue)> GetQueue(string queueName, Vhost vhost)
         {
             Queue queue = null;
             try
@@ -74,9 +74,9 @@
             return (queue != null, queue);
         }
 
-        private async Task<Exchange> CreateExchange(string exchangeName)
+        private async Task<Exchange> CreateExchange(string exchangeName, Vhost vhost)
         {
-            var (found, foundExchange) = await GetExchange(exchangeName);
+            var (found, foundExchange) = await GetExchange(exchangeName, vhost);
             if (!found)
             {
                 var createdExchange =
@@ -88,7 +88,7 @@
             return foundExchange;
         }
 
-        private async Task<(bool found, Exchange exchange)> GetExchange(string exchangeName)
+        private async Task<(bool found, Exchange exchange)> GetExchange(string exchangeName, Vhost vhost)
         {
             Exchange exchange = null;
 
