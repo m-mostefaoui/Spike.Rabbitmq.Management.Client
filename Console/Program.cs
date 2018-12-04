@@ -1,25 +1,27 @@
 ﻿namespace Console
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Configuration;
     using PowerArgs;
     using Spike.RabbitMq.Management.Client;
 
     class Program
     {
-        private const string HostName = "localhost";
-        private const string Username = "pvRetailDev";
-        private const string Password = "pvRetailDev";
-
         private static async Task Main(string[] args)
         {
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
             do
             {                
                 try
                 {
                     var parsed = Args.Parse<CommandLineArgs>(args);
 
-                    using (var managementClient = new RabbitMqManagementClient(HostName, Username, Password))
+                    using (var managementClient = new RabbitMqManagementClient(config["HostUrl"], config["Username"], config["Password"]))
                     {
                         await managementClient.CreateBinding(parsed.QueueName, parsed.Token);
 
@@ -31,7 +33,6 @@
                     Console.WriteLine(ex.Message);
                 }       
             } while (true);
-            
         }
     }
 }

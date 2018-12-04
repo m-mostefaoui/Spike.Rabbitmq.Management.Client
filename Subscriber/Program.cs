@@ -2,28 +2,36 @@
 
 namespace Subscriber
 {
+    using System.IO;
     using MassTransit;
     using MassTransit.RabbitMqTransport;
+    using Microsoft.Extensions.Configuration;
     using RabbitMQ.Client;
 
     class Program
     {
-        private const string HostUrl = "rabbitmq://localhost/ParcelVision.Retail";
-        private const string User = "pvRetailDev";
-        private const string Password = "pvRetailDev";
+        //private const string HostUrl = "rabbitmq://localhost/ParcelVision.Retail";
+        //private const string User = "pvRetailDev";
+        //private const string Password = "pvRetailDev";
 
         private static IRabbitMqHost host;
+
         public static void Main()
         {
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
+
             string testChestnutQueueName = "spike-test-queue";
             string testPoplarQueueName = "spike-test-poplar-queue";
 
             var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
-                host = cfg.Host(new Uri(HostUrl), h =>
+                host = cfg.Host(new Uri(config["HostUrl"]), h =>
                 {
-                    h.Username(User);
-                    h.Password(Password);
+                    h.Username(config["Username"]);
+                    h.Password(config["Password"]);
                 });
                 
                 cfg.ReceiveEndpoint(host, testChestnutQueueName, x =>
@@ -45,16 +53,5 @@ namespace Subscriber
             busControl.Stop();
         }
 
-        private static IBusControl ConfigureBus()
-        {
-            return Bus.Factory.CreateUsingRabbitMq(cfg =>
-            {
-                cfg.Host(new Uri(HostUrl), h =>
-                {
-                    h.Username(User);
-                    h.Password(Password);
-                });
-            });
-        }
     }
 }
